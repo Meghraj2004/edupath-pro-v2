@@ -98,6 +98,7 @@ export interface Course {
   description: string;
   careerPaths?: CareerPath[];
   subjects: string[];
+  degree?: string;
   skills?: string[];
   careerProspects?: string[];
   fees?: number;
