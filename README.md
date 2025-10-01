@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EduPath Pro - Your Personalized Career & Education Navigator
+
+A comprehensive Next.js + Firebase web application that provides personalized career and education guidance for students.
+
+## Features
+
+- 🔐 **Authentication** - Firebase Auth with email/password and Google sign-in
+- 📊 **Aptitude Quiz** - Interactive quiz to determine student interests and strengths
+- 🎯 **Course-to-Career Mapping** - Visual roadmaps showing degree to career paths
+- 🏫 **College Directory** - Location-based search for government colleges
+- 📅 **Timeline Tracker** - Personalized notifications for important dates
+- 🎓 **Scholarship Resources** - Government scholarships and free learning resources
+- 🤖 **AI Recommendations** - Personalized suggestions based on quiz results
+- 👨‍💼 **Admin Panel** - Manage colleges, scholarships, and course
+CURD- Create, Update, read, Delete
+## Tech Stack
+
+- **Frontend:** Next.js 15, TypeScript, Tailwind CSS
+- **UI Components:** shadcn/ui, Framer Motion
+- **Backend:** Firebase (Auth, Firestore, Hosting)
+- **Charts:** Recharts
+- **Icons:** Lucide React
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Admin Access
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Username: `megharaj`
+- Password: `megharaj@123`
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/           # Next.js App Router pages
+├── components/    # Reusable UI components
+├── lib/          # Utilities and Firebase config
+├── types/        # TypeScript type definitions
+└── hooks/        # Custom React hooks
+```

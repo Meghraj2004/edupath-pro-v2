@@ -1,0 +1,8 @@
+{
+  "role": "admin",
+  "email": "megharaj@admin.com",
+  "displayName": "Admin User",
+  "createdAt": "2024-09-27T00:00:00.000Z",
+  "permissions": ["read", "write", "delete", "manage_users", "manage_courses", "manage_colleges", "manage_careers", "manage_scholarships"],
+  "isActive": true
+}
