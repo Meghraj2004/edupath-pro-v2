@@ -105,7 +105,6 @@ export interface Course {
   subjects: string[];
   degree?: string;
   skills?: string[];
-  degree?: string;
   careerProspects?: string[];
   fees?: number;
   rating?: number;
