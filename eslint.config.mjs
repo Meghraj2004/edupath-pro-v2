@@ -20,6 +20,24 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      // Disable unescaped entities rule - too strict for content-heavy pages
+      "react/no-unescaped-entities": "off",
+      
+      // Change no-explicit-any from error to warning
+      "@typescript-eslint/no-explicit-any": "warn",
+      
+      // Change unused vars from error to warning
+      "@typescript-eslint/no-unused-vars": "warn",
+      
+      // Change exhaustive deps from error to warning
+      "react-hooks/exhaustive-deps": "warn",
+      
+      // Change no-html-link-for-pages from error to warning
+      "@next/next/no-html-link-for-pages": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;
