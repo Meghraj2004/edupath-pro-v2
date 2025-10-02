@@ -59,7 +59,7 @@ export default function Navbar() {
             <Link href="/" className="flex items-center space-x-2">
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">
                 <Image 
-                  src="/logo.png" 
+                  src="/favicon .ico" 
                   alt="EduPath Pro Logo" 
                   width={25} 
                   height={25}
