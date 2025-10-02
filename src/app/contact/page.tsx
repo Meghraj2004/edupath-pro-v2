@@ -39,6 +39,7 @@ export default function ContactPage() {
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
@@ -72,22 +73,39 @@ export default function ContactPage() {
 
       await addDoc(collection(db, 'contacts'), contactData);
 
-      // Send email notification
-      console.log('📧 Sending contact form data to API...');
-      const response = await fetch('/api/send-contact-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(contactData),
-      });
+      // Send email notification (non-blocking)
+      try {
+        const response = await fetch('/api/send-contact-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contactData),
+        });
 
-      const result = await response.json();
-      console.log('API Response:', result);
-
-      if (!response.ok) {
-        console.error('Email API failed:', result);
-        throw new Error(result.details || 'Failed to send email');
+        const result = await response.json();
+        
+        // Check if email was sent successfully
+        if (result.success && result.emailSent) {
+          // Email sent successfully - no warning needed
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Email notification sent');
+          }
+        } else if (result.success && !result.emailSent) {
+          // Form saved but email failed - show warning
+          if (result.warning) {
+            setEmailWarning(`Your message was saved successfully! ${result.warning}`);
+          }
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ Email notification not sent:', result.warning);
+          }
+        }
+      } catch (emailError) {
+        // Email API call failed completely - still okay since data is saved
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Email API call failed:', emailError);
+        }
+        setEmailWarning('Your message was saved successfully! Email notification may have failed.');
       }
 
       setSubmitted(true);
@@ -100,17 +118,11 @@ export default function ContactPage() {
         message: ''
       });
     } catch (error) {
-      console.error('Error submitting form:', error);
-      // Still show success to user even if email fails
-      setSubmitted(true);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        category: '',
-        message: ''
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error submitting form:', error);
+      }
+      // Show error to user
+      alert('There was an error submitting your message. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -319,12 +331,22 @@ export default function ContactPage() {
               </CardHeader>
               <CardContent>
                 {submitted ? (
-                  <Alert className="border-green-200 bg-green-50">
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Thank you for your message! We've received your inquiry and will respond within 24 hours.
-                    </AlertDescription>
-                  </Alert>
+                  <div className="space-y-3">
+                    <Alert className="border-green-200 bg-green-50">
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Thank you for your message! We've received your inquiry and will respond within 24 hours.
+                      </AlertDescription>
+                    </Alert>
+                    {emailWarning && (
+                      <Alert className="border-yellow-200 bg-yellow-50">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <AlertDescription className="text-yellow-800">
+                          {emailWarning}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
