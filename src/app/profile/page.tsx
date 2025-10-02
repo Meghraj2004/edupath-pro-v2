@@ -36,6 +36,7 @@ import {
 import { motion } from 'framer-motion';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { User as UserType } from '@/types';
 
 export default function ProfilePage() {
   const { user, updateUserProfile } = useAuth();
@@ -98,7 +99,7 @@ export default function ProfilePage() {
   const handleRemoveInterest = (interest: string) => {
     setFormData(prev => ({
       ...prev,
-      interests: prev.interests.filter(i => i !== interest)
+      interests: prev.interests.filter((i: string) => i !== interest)
     }));
   };
 
@@ -115,7 +116,7 @@ export default function ProfilePage() {
   const handleRemoveGoal = (goal: string) => {
     setFormData(prev => ({
       ...prev,
-      careerGoals: prev.careerGoals.filter(g => g !== goal)
+      careerGoals: prev.careerGoals.filter((g: string) => g !== goal)
     }));
   };
 
@@ -126,7 +127,12 @@ export default function ProfilePage() {
     setMessage(null);
     
     try {
-      await updateUserProfile(formData);
+      // Prepare data with proper type casting
+      const profileData: Partial<UserType> = {
+        ...formData,
+        class: formData.class === '10' || formData.class === '12' ? formData.class : undefined
+      };
+      await updateUserProfile(profileData);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error: any) {
       console.error('Error updating profile:', error);
@@ -355,7 +361,7 @@ export default function ProfilePage() {
                       </div>
                       
                       <div className="flex flex-wrap gap-2">
-                        {formData.interests.map((interest, index) => (
+                        {formData.interests.map((interest: string, index: number) => (
                           <Badge 
                             key={index} 
                             variant="secondary" 
@@ -394,7 +400,7 @@ export default function ProfilePage() {
                       </div>
                       
                       <div className="flex flex-wrap gap-2">
-                        {formData.careerGoals.map((goal, index) => (
+                        {formData.careerGoals.map((goal: string, index: number) => (
                           <Badge 
                             key={index} 
                             variant="outline" 

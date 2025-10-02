@@ -14,7 +14,7 @@ export const sampleColleges: College[] = [
       coordinates: { lat: 19.0760, lng: 72.8777 }
     },
     coursesOffered: [
-      { id: 'mbbs', name: 'Bachelor of Medicine and Bachelor of Surgery', shortName: 'MBBS', duration: '5.5 years', eligibility: '12th Science with PCB', stream: ['science'], description: 'Undergraduate medical degree program', careerPaths: [], subjects: ['Biology', 'Chemistry', 'Physics'], isActive: true }
+      { id: 'mbbs', name: 'Bachelor of Medicine and Bachelor of Surgery', shortName: 'MBBS', duration: '5.5 years', eligibility: '12th Science with PCB', stream: ['science'], description: 'Undergraduate medical degree program', careerPaths: [], subjects: ['Biology', 'Chemistry', 'Physics'], isActive: true, createdAt: new Date(), updatedAt: new Date() }
     ],
     cutoffs: {
       'mbbs': { general: 600, obc: 580, sc: 520, st: 500 }
@@ -38,7 +38,7 @@ export const sampleColleges: College[] = [
       coordinates: { lat: 28.7041, lng: 77.1025 }
     },
     coursesOffered: [
-      { id: 'btech-cs', name: 'Bachelor of Technology in Computer Science', shortName: 'B.Tech CS', duration: '4 years', eligibility: '12th Science with PCM', stream: ['science'], description: 'Undergraduate engineering program in computer science', careerPaths: [], subjects: ['Mathematics', 'Physics', 'Computer Science'], isActive: true }
+      { id: 'btech-cs', name: 'Bachelor of Technology in Computer Science', shortName: 'B.Tech CS', duration: '4 years', eligibility: '12th Science with PCM', stream: ['science'], description: 'Undergraduate engineering program in computer science', careerPaths: [], subjects: ['Mathematics', 'Physics', 'Computer Science'], isActive: true, createdAt: new Date(), updatedAt: new Date() }
     ],
     cutoffs: {
       'btech-cs': { general: 180, obc: 170, sc: 150, st: 140 }
@@ -86,7 +86,9 @@ export const sampleCourses: Course[] = [
       }
     ],
     subjects: ['Mathematics', 'Physics', 'Computer Science', 'Data Structures', 'Algorithms'],
-    isActive: true
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
     id: 'bcom',
@@ -119,7 +121,9 @@ export const sampleCourses: Course[] = [
       }
     ],
     subjects: ['Accountancy', 'Business Studies', 'Economics', 'Mathematics'],
-    isActive: true
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ];
 

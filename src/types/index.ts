@@ -3,11 +3,16 @@ export interface User {
   email: string;
   displayName?: string;
   photoURL?: string;
+  phone?: string;
+  dateOfBirth?: string;
   age?: number;
   gender?: 'male' | 'female' | 'other';
   academicInterests?: string[];
+  interests?: string[];
+  careerGoals?: string[];
   location?: string;
   class?: '10' | '12';
+  category?: string;
   bio?: string;
   quizResults?: QuizResult;
   createdAt: Date;
@@ -100,6 +105,7 @@ export interface Course {
   subjects: string[];
   degree?: string;
   skills?: string[];
+  degree?: string;
   careerProspects?: string[];
   fees?: number;
   rating?: number;
@@ -179,11 +185,12 @@ export interface TimelineEvent {
   title: string;
   description: string;
   date: Date;
-  type: 'admission' | 'scholarship' | 'exam' | 'deadline';
-  priority: 'high' | 'medium' | 'low';
+  type: string;
+  priority: string;
   isCompleted: boolean;
-  reminderDates: Date[];
+  reminderDates?: Date[];
   relatedLinks?: string[];
+  createdAt?: Date;
 }
 
 export interface AdminUser {

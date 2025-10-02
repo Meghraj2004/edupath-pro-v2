@@ -82,10 +82,17 @@ export default function TimelinePage() {
         const data = doc.data();
         eventsData.push({
           id: doc.id,
-          ...data,
-          date: data.date.toDate(),
+          userId: data.userId || user.uid,
+          title: data.title || '',
+          description: data.description || '',
+          date: data.date?.toDate() || new Date(),
+          type: data.type || 'Personal',
+          priority: data.priority || 'Medium',
+          isCompleted: data.isCompleted || false,
+          reminderDates: data.reminderDates?.map((d: any) => d.toDate()) || [],
+          relatedLinks: data.relatedLinks || [],
           createdAt: data.createdAt?.toDate() || new Date()
-        } as TimelineEvent);
+        });
       });
       
       // Sort in memory instead of using Firestore orderBy to avoid index requirement

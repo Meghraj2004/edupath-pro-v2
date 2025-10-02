@@ -5,16 +5,19 @@ import { TimelineEvent } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, CheckCircle, ExternalLink, Edit, Trash2 } from 'lucide-react';
 import { format, isAfter, isBefore, addDays } from 'date-fns';
 import { motion } from 'framer-motion';
 
 interface TimelineProps {
   events: TimelineEvent[];
   onMarkComplete?: (eventId: string) => void;
+  onToggleComplete?: (event: TimelineEvent) => void;
+  onEdit?: (event: TimelineEvent) => void;
+  onDelete?: (eventId: string) => void;
 }
 
-export default function Timeline({ events, onMarkComplete }: TimelineProps) {
+export default function Timeline({ events, onMarkComplete, onToggleComplete, onEdit, onDelete }: TimelineProps) {
   const sortedEvents = events.sort((a, b) => a.date.getTime() - b.date.getTime());
   
   const getEventStatus = (event: TimelineEvent) => {
@@ -129,13 +132,45 @@ export default function Timeline({ events, onMarkComplete }: TimelineProps) {
                       </Button>
                     )}
                     
-                    {!event.isCompleted && onMarkComplete && (
+                    {onToggleComplete && (
+                      <Button 
+                        variant={event.isCompleted ? "outline" : "default"}
+                        size="sm"
+                        onClick={() => onToggleComplete(event)}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        {event.isCompleted ? 'Completed' : 'Mark Complete'}
+                      </Button>
+                    )}
+                    
+                    {!event.isCompleted && onMarkComplete && !onToggleComplete && (
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => onMarkComplete(event.id)}
                       >
                         Mark Complete
+                      </Button>
+                    )}
+                    
+                    {onEdit && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => onEdit(event)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    {onDelete && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => onDelete(event.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>

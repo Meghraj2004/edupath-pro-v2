@@ -15,11 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Settings, 
-  Building2, 
-  GraduationCap, 
-  Trophy, 
+import {
+  Settings,
+  Building2,
+  GraduationCap,
+  Trophy,
   Users,
   Plus,
   Edit,
@@ -47,7 +47,7 @@ function AdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (credentials.username !== 'megharaj@admin.com' || credentials.password !== 'megharaj@123') {
       setError('Invalid credentials');
       return;
@@ -57,16 +57,16 @@ function AdminLogin() {
     try {
       // Try to sign in with Firebase Auth
       await signIn('megharaj@admin.com', 'megharaj@123');
-      
+
       // Set a timeout to reset loading state if auth state doesn't change quickly
       setTimeout(() => {
         setLoading(false);
       }, 5000);
-      
+
     } catch (error: any) {
       console.error('Admin login error:', error);
       setLoading(false);
-      
+
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         setError('Admin account not found. Please run the setup first to create the admin user.');
         setTimeout(() => {
@@ -105,7 +105,7 @@ function AdminLogin() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <Label htmlFor="username">Username</Label>
@@ -118,7 +118,7 @@ function AdminLogin() {
                   disabled={loading}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -130,12 +130,12 @@ function AdminLogin() {
                   disabled={loading}
                 />
               </div>
-              
+
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
-            
+
             <div className="mt-4 text-center text-sm text-gray-500">
               <p>Demo Credentials:</p>
               <p>Username: <code>megharaj@admin.com</code></p>
@@ -197,13 +197,20 @@ function CollegeManagement() {
         newCollege.coursesText.split('\n').filter(line => line.trim()).forEach((line, index) => {
           const parts = line.split(',').map(part => part.trim());
           const courseId = `course-${index + 1}`;
-          
+
           // Course basic info
           const course: Course = {
             id: courseId,
             name: parts[0] || `Course ${index + 1}`,
+            shortName: parts[0]?.substring(0, 10) || `C${index + 1}`,
             duration: parts[1] || '4 years',
-            degree: parts[2] || 'Bachelor'
+            eligibility: parts[2] || '12th pass',
+            stream: [],
+            description: parts[3] || 'No description',
+            subjects: [],
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
           };
           coursesOffered.push(course);
 
@@ -259,7 +266,7 @@ function CollegeManagement() {
 
       await addDoc(collection(db, 'colleges'), collegeData);
       await fetchColleges();
-      
+
       // Reset form
       setNewCollege({
         name: '',
@@ -296,7 +303,7 @@ function CollegeManagement() {
     setEditing(college.id);
     setNewCollege({
       ...college,
-      coursesText: college.coursesOffered?.map(course => 
+      coursesText: college.coursesOffered?.map(course =>
         `${course.name}, ${course.duration}, ${course.eligibility || 'Not specified'}, ${course.description || 'No description'}`
       ).join('\n') || '',
       facilitiesText: college.facilities?.join(', ') || '',
@@ -306,7 +313,7 @@ function CollegeManagement() {
 
   const updateCollege = async () => {
     if (!editing) return;
-    
+
     try {
       // Parse the updated data similar to addCollege
       const coursesOffered: Course[] = [];
@@ -317,23 +324,17 @@ function CollegeManagement() {
         newCollege.coursesText.split('\n').filter(line => line.trim()).forEach((line, index) => {
           const parts = line.split(',').map(part => part.trim());
           const courseId = `course-${index + 1}`;
-          
+
           coursesOffered.push({
             id: courseId,
             name: parts[0] || '',
+            shortName: parts[0]?.substring(0, 10) || `C${index + 1}`,
             duration: parts[1] || '',
             eligibility: parts[2] || 'Not specified',
+            stream: [],
             description: parts[3] || 'No description available',
-            syllabus: [],
-            rating: 4.0,
-            studentsEnrolled: 0,
-            instructor: 'TBD',
-            price: 0,
-            level: 'Beginner',
-            category: 'Academic',
-            prerequisites: [],
-            learningOutcomes: [],
-            courseLink: '',
+            subjects: [],
+            isActive: true,
             createdAt: new Date(),
             updatedAt: new Date()
           });
@@ -498,7 +499,7 @@ function CollegeManagement() {
               <Label htmlFor="isGovernment">Government College</Label>
             </div>
           </div>
-          
+
           {/* Courses Section */}
           <div className="space-y-2">
             <Label>Courses Offered (one per line)</Label>
@@ -531,9 +532,9 @@ function CollegeManagement() {
               placeholder="English, Hindi"
             />
           </div>
-          
-          <Button 
-            onClick={addCollege} 
+
+          <Button
+            onClick={addCollege}
             disabled={!newCollege.name || !newCollege.location?.district || !newCollege.coursesText?.trim()}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -551,7 +552,7 @@ function CollegeManagement() {
                 <div>
                   <h3 className="text-lg font-semibold">{college.name}</h3>
                   <p className="text-gray-600">
-                    {college.location?.district && college.location?.state 
+                    {college.location?.district && college.location?.state
                       ? `${college.location.district}, ${college.location.state}`
                       : 'Location not specified'
                     }
@@ -577,7 +578,7 @@ function CollegeManagement() {
                           Update the college information below.
                         </DialogDescription>
                       </DialogHeader>
-                      
+
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -589,7 +590,7 @@ function CollegeManagement() {
                               placeholder="Enter college name"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-website">Website</Label>
                             <Input
@@ -607,35 +608,50 @@ function CollegeManagement() {
                             <Input
                               id="edit-district"
                               value={newCollege.location?.district || ''}
-                              onChange={(e) => setNewCollege(prev => ({ 
-                                ...prev, 
-                                location: { ...prev.location, district: e.target.value }
+                              onChange={(e) => setNewCollege(prev => ({
+                                ...prev,
+                                location: {
+                                  district: e.target.value,
+                                  state: prev.location?.state || '',
+                                  pincode: prev.location?.pincode || '',
+                                  coordinates: prev.location?.coordinates
+                                }
                               }))}
                               placeholder="Enter district"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-state">State</Label>
                             <Input
                               id="edit-state"
                               value={newCollege.location?.state || ''}
-                              onChange={(e) => setNewCollege(prev => ({ 
-                                ...prev, 
-                                location: { ...prev.location, state: e.target.value }
+                              onChange={(e) => setNewCollege(prev => ({
+                                ...prev,
+                                location: {
+                                  district: prev.location?.district || '',
+                                  state: e.target.value,
+                                  pincode: prev.location?.pincode || '',
+                                  coordinates: prev.location?.coordinates
+                                }
                               }))}
                               placeholder="Enter state"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-pincode">Pincode</Label>
                             <Input
                               id="edit-pincode"
                               value={newCollege.location?.pincode || ''}
-                              onChange={(e) => setNewCollege(prev => ({ 
-                                ...prev, 
-                                location: { ...prev.location, pincode: e.target.value }
+                              onChange={(e) => setNewCollege(prev => ({
+                                ...prev,
+                                location: {
+                                  district: prev.location?.district || '',
+                                  state: prev.location?.state || '',
+                                  pincode: e.target.value,
+                                  coordinates: prev.location?.coordinates
+                                }
                               }))}
                               placeholder="Enter pincode"
                             />
@@ -648,22 +664,28 @@ function CollegeManagement() {
                             <Input
                               id="edit-phone"
                               value={newCollege.contact?.phone || ''}
-                              onChange={(e) => setNewCollege(prev => ({ 
-                                ...prev, 
-                                contact: { ...prev.contact, phone: e.target.value }
+                              onChange={(e) => setNewCollege(prev => ({
+                                ...prev,
+                                contact: {
+                                  phone: e.target.value,
+                                  email: prev.contact?.email || ''
+                                }
                               }))}
                               placeholder="Enter phone number"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-email">Email</Label>
                             <Input
                               id="edit-email"
                               value={newCollege.contact?.email || ''}
-                              onChange={(e) => setNewCollege(prev => ({ 
-                                ...prev, 
-                                contact: { ...prev.contact, email: e.target.value }
+                              onChange={(e) => setNewCollege(prev => ({
+                                ...prev,
+                                contact: {
+                                  phone: prev.contact?.phone || '',
+                                  email: e.target.value
+                                }
                               }))}
                               placeholder="Enter email"
                             />
@@ -692,7 +714,7 @@ function CollegeManagement() {
                               rows={3}
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-medium">Medium of Instruction (comma-separated)</Label>
                             <Input
@@ -706,8 +728,8 @@ function CollegeManagement() {
 
                         <div>
                           <Label>College Type</Label>
-                          <Select 
-                            value={newCollege.isGovernment ? 'government' : 'private'} 
+                          <Select
+                            value={newCollege.isGovernment ? 'government' : 'private'}
                             onValueChange={(value) => setNewCollege(prev => ({ ...prev, isGovernment: value === 'government' }))}
                           >
                             <SelectTrigger>
@@ -724,12 +746,12 @@ function CollegeManagement() {
                           <Label htmlFor="edit-cutoffs">Cutoffs (Simple format: Category-Rank-Percentile, one per line)</Label>
                           <Textarea
                             id="edit-cutoffs"
-                            value={newCollege.cutoffs ? 
-                              (typeof newCollege.cutoffs === 'object' ? 
-                                Object.entries(newCollege.cutoffs).map(([category, data]: [string, any]) => 
+                            value={newCollege.cutoffs ?
+                              (typeof newCollege.cutoffs === 'object' ?
+                                Object.entries(newCollege.cutoffs).map(([category, data]: [string, any]) =>
                                   `${category}-${data.rank || 0}-${data.percentile || 0}`
-                                ).join('\n') : 
-                                newCollege.cutoffs.toString()
+                                ).join('\n') :
+                                ''
                               ) : ''
                             }
                             onChange={(e) => {
@@ -762,20 +784,22 @@ function CollegeManagement() {
                               type="number"
                               step="any"
                               value={newCollege.location?.coordinates?.lat || ''}
-                              onChange={(e) => setNewCollege(prev => ({ 
-                                ...prev, 
-                                location: { 
-                                  ...prev.location, 
-                                  coordinates: { 
-                                    ...prev.location?.coordinates, 
-                                    lat: parseFloat(e.target.value) || 0 
+                              onChange={(e) => setNewCollege(prev => ({
+                                ...prev,
+                                location: {
+                                  district: prev.location?.district || '',
+                                  state: prev.location?.state || '',
+                                  pincode: prev.location?.pincode || '',
+                                  coordinates: {
+                                    lat: parseFloat(e.target.value) || 0,
+                                    lng: prev.location?.coordinates?.lng || 0
                                   }
                                 }
                               }))}
                               placeholder="Enter latitude"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-longitude">Longitude (Optional)</Label>
                             <Input
@@ -783,13 +807,15 @@ function CollegeManagement() {
                               type="number"
                               step="any"
                               value={newCollege.location?.coordinates?.lng || ''}
-                              onChange={(e) => setNewCollege(prev => ({ 
-                                ...prev, 
-                                location: { 
-                                  ...prev.location, 
-                                  coordinates: { 
-                                    ...prev.location?.coordinates, 
-                                    lng: parseFloat(e.target.value) || 0 
+                              onChange={(e) => setNewCollege(prev => ({
+                                ...prev,
+                                location: {
+                                  district: prev.location?.district || '',
+                                  state: prev.location?.state || '',
+                                  pincode: prev.location?.pincode || '',
+                                  coordinates: {
+                                    lat: prev.location?.coordinates?.lat || 0,
+                                    lng: parseFloat(e.target.value) || 0
                                   }
                                 }
                               }))}
@@ -811,7 +837,7 @@ function CollegeManagement() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  
+
                   <Button variant="destructive" size="sm" onClick={() => deleteCollege(college.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -891,20 +917,20 @@ function ScholarshipManagement() {
 
   const startEditingScholarship = (scholarship: Scholarship) => {
     setEditing(scholarship.id);
-    
+
     // Handle applicationDeadline safely
     let applicationDeadline: Date | undefined = undefined;
     if (scholarship.applicationDeadline) {
       try {
-        const date = scholarship.applicationDeadline instanceof Date 
-          ? scholarship.applicationDeadline 
+        const date = scholarship.applicationDeadline instanceof Date
+          ? scholarship.applicationDeadline
           : new Date(scholarship.applicationDeadline);
         applicationDeadline = isNaN(date.getTime()) ? undefined : date;
       } catch {
         applicationDeadline = undefined;
       }
     }
-    
+
     setNewScholarship({
       ...scholarship,
       applicationDeadline
@@ -913,7 +939,7 @@ function ScholarshipManagement() {
 
   const updateScholarship = async () => {
     if (!editing) return;
-    
+
     try {
       const scholarshipData = {
         ...newScholarship,
@@ -1001,15 +1027,15 @@ function ScholarshipManagement() {
               <Input
                 type="date"
                 value={
-                  newScholarship.applicationDeadline 
+                  newScholarship.applicationDeadline
                     ? (() => {
-                        try {
-                          const date = new Date(newScholarship.applicationDeadline);
-                          return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
-                        } catch {
-                          return '';
-                        }
-                      })()
+                      try {
+                        const date = new Date(newScholarship.applicationDeadline);
+                        return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+                      } catch {
+                        return '';
+                      }
+                    })()
                     : ''
                 }
                 onChange={(e) => {
@@ -1031,35 +1057,35 @@ function ScholarshipManagement() {
               <Input
                 type="number"
                 value={newScholarship.eligibility?.income || ''}
-                onChange={(e) => setNewScholarship(prev => ({ 
-                  ...prev, 
-                  eligibility: { 
-                    ...prev.eligibility, 
+                onChange={(e) => setNewScholarship(prev => ({
+                  ...prev,
+                  eligibility: {
+                    ...prev.eligibility,
                     income: parseInt(e.target.value) || 0,
                     class: prev.eligibility?.class || [],
                     category: prev.eligibility?.category || [],
                     gender: prev.eligibility?.gender || []
-                  } 
+                  }
                 }))}
                 placeholder="Enter maximum income limit"
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Eligible Classes</Label>
               <Input
                 value={newScholarship.eligibility?.class?.join(', ') || ''}
-                onChange={(e) => setNewScholarship(prev => ({ 
-                  ...prev, 
-                  eligibility: { 
-                    ...prev.eligibility, 
+                onChange={(e) => setNewScholarship(prev => ({
+                  ...prev,
+                  eligibility: {
+                    ...prev.eligibility,
                     class: e.target.value.split(',').map(s => s.trim()).filter(s => s),
                     income: prev.eligibility?.income || 0,
                     category: prev.eligibility?.category || [],
                     gender: prev.eligibility?.gender || []
-                  } 
+                  }
                 }))}
                 placeholder="e.g., 10, 12, Graduation, Post-Graduation"
               />
@@ -1068,15 +1094,15 @@ function ScholarshipManagement() {
               <Label>Eligible Categories</Label>
               <Input
                 value={newScholarship.eligibility?.category?.join(', ') || ''}
-                onChange={(e) => setNewScholarship(prev => ({ 
-                  ...prev, 
-                  eligibility: { 
-                    ...prev.eligibility, 
+                onChange={(e) => setNewScholarship(prev => ({
+                  ...prev,
+                  eligibility: {
+                    ...prev.eligibility,
                     category: e.target.value.split(',').map(s => s.trim()).filter(s => s),
                     income: prev.eligibility?.income || 0,
                     class: prev.eligibility?.class || [],
                     gender: prev.eligibility?.gender || []
-                  } 
+                  }
                 }))}
                 placeholder="e.g., General, SC, ST, OBC, EWS"
               />
@@ -1087,8 +1113,8 @@ function ScholarshipManagement() {
             <Label>Required Documents</Label>
             <Input
               value={newScholarship.documents?.join(', ') || ''}
-              onChange={(e) => setNewScholarship(prev => ({ 
-                ...prev, 
+              onChange={(e) => setNewScholarship(prev => ({
+                ...prev,
                 documents: e.target.value.split(',').map(s => s.trim()).filter(s => s)
               }))}
               placeholder="e.g., Aadhaar Card, Income Certificate, Academic Records"
@@ -1141,7 +1167,7 @@ function ScholarshipManagement() {
                           Update the scholarship information below.
                         </DialogDescription>
                       </DialogHeader>
-                      
+
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -1153,7 +1179,7 @@ function ScholarshipManagement() {
                               placeholder="Enter scholarship name"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-provider">Provider</Label>
                             <Input
@@ -1187,24 +1213,24 @@ function ScholarshipManagement() {
                               placeholder="Enter amount"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-deadline">Application Deadline</Label>
                             <Input
                               id="edit-deadline"
                               type="date"
                               value={
-                                newScholarship.applicationDeadline 
+                                newScholarship.applicationDeadline
                                   ? (() => {
-                                      try {
-                                        const date = newScholarship.applicationDeadline instanceof Date 
-                                          ? newScholarship.applicationDeadline 
-                                          : new Date(newScholarship.applicationDeadline);
-                                        return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
-                                      } catch {
-                                        return '';
-                                      }
-                                    })()
+                                    try {
+                                      const date = newScholarship.applicationDeadline instanceof Date
+                                        ? newScholarship.applicationDeadline
+                                        : new Date(newScholarship.applicationDeadline);
+                                      return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+                                    } catch {
+                                      return '';
+                                    }
+                                  })()
                                   : ''
                               }
                               onChange={(e) => {
@@ -1230,8 +1256,8 @@ function ScholarshipManagement() {
                           <Textarea
                             id="edit-documents"
                             value={(newScholarship.documents && Array.isArray(newScholarship.documents)) ? newScholarship.documents.join(', ') : ''}
-                            onChange={(e) => setNewScholarship(prev => ({ 
-                              ...prev, 
+                            onChange={(e) => setNewScholarship(prev => ({
+                              ...prev,
                               documents: e.target.value.split(',').map(d => d.trim()).filter(d => d)
                             }))}
                             placeholder="10th Marksheet, 12th Marksheet, Income Certificate"
@@ -1241,68 +1267,76 @@ function ScholarshipManagement() {
 
                         <div className="space-y-4 border rounded-lg p-4">
                           <h3 className="font-medium text-sm">Eligibility Criteria</h3>
-                          
+
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <Label htmlFor="edit-eligible-classes">Eligible Classes (comma-separated)</Label>
                               <Input
                                 id="edit-eligible-classes"
                                 value={(newScholarship.eligibility?.class && Array.isArray(newScholarship.eligibility.class)) ? newScholarship.eligibility.class.join(', ') : ''}
-                                onChange={(e) => setNewScholarship(prev => ({ 
-                                  ...prev, 
+                                onChange={(e) => setNewScholarship(prev => ({
+                                  ...prev,
                                   eligibility: {
-                                    ...prev.eligibility,
-                                    class: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                                    class: e.target.value.split(',').map(s => s.trim()).filter(s => s),
+                                    income: prev.eligibility?.income || 0,
+                                    category: prev.eligibility?.category || [],
+                                    gender: prev.eligibility?.gender
                                   }
                                 }))}
                                 placeholder="10th, 12th, Graduation"
                               />
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-income-limit">Family Income Limit (₹)</Label>
                               <Input
                                 id="edit-income-limit"
                                 type="number"
                                 value={newScholarship.eligibility?.income || 0}
-                                onChange={(e) => setNewScholarship(prev => ({ 
-                                  ...prev, 
+                                onChange={(e) => setNewScholarship(prev => ({
+                                  ...prev,
                                   eligibility: {
-                                    ...prev.eligibility,
-                                    income: parseInt(e.target.value) || 0
+                                    class: prev.eligibility?.class || [],
+                                    income: parseInt(e.target.value) || 0,
+                                    category: prev.eligibility?.category || [],
+                                    gender: prev.eligibility?.gender
                                   }
                                 }))}
                                 placeholder="200000"
                               />
                             </div>
                           </div>
-                          
+
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <Label htmlFor="edit-categories">Eligible Categories (comma-separated)</Label>
                               <Input
                                 id="edit-categories"
                                 value={(newScholarship.eligibility?.category && Array.isArray(newScholarship.eligibility.category)) ? newScholarship.eligibility.category.join(', ') : ''}
-                                onChange={(e) => setNewScholarship(prev => ({ 
-                                  ...prev, 
+                                onChange={(e) => setNewScholarship(prev => ({
+                                  ...prev,
                                   eligibility: {
-                                    ...prev.eligibility,
-                                    category: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                                    class: prev.eligibility?.class || [],
+                                    income: prev.eligibility?.income || 0,
+                                    category: e.target.value.split(',').map(s => s.trim()).filter(s => s),
+                                    gender: prev.eligibility?.gender
                                   }
                                 }))}
                                 placeholder="General, OBC, SC, ST"
                               />
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-gender">Gender Restriction (comma-separated, optional)</Label>
                               <Input
                                 id="edit-gender"
                                 value={(newScholarship.eligibility?.gender && Array.isArray(newScholarship.eligibility.gender)) ? newScholarship.eligibility.gender.join(', ') : ''}
-                                onChange={(e) => setNewScholarship(prev => ({ 
-                                  ...prev, 
+                                onChange={(e) => setNewScholarship(prev => ({
+                                  ...prev,
                                   eligibility: {
-                                    ...prev.eligibility,
+                                    class: prev.eligibility?.class || [],
+                                    income: prev.eligibility?.income || 0,
+                                    category: prev.eligibility?.category || [],
                                     gender: e.target.value ? e.target.value.split(',').map(s => s.trim()).filter(s => s) : undefined
                                   }
                                 }))}
@@ -1314,8 +1348,8 @@ function ScholarshipManagement() {
 
                         <div>
                           <Label>Status</Label>
-                          <Select 
-                            value={newScholarship.isActive ? 'active' : 'inactive'} 
+                          <Select
+                            value={newScholarship.isActive ? 'active' : 'inactive'}
                             onValueChange={(value) => setNewScholarship(prev => ({ ...prev, isActive: value === 'active' }))}
                           >
                             <SelectTrigger>
@@ -1341,7 +1375,7 @@ function ScholarshipManagement() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  
+
                   <Button variant="destructive" size="sm" onClick={() => deleteScholarship(scholarship.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -1355,11 +1389,18 @@ function ScholarshipManagement() {
   );
 }
 
-// Course management component
+// Course management component with form helper type
+type CourseFormData = Omit<Partial<Course>, 'subjects' | 'skills' | 'careerProspects' | 'prerequisites'> & {
+  subjects?: string[] | string;
+  skills?: string[] | string;
+  careerProspects?: string[] | string;
+  prerequisites?: string[] | string;
+};
+
 function CourseManagement() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
-  const [newCourse, setNewCourse] = useState<Partial<Course>>({
+  const [newCourse, setNewCourse] = useState<CourseFormData>({
     name: '',
     shortName: '',
     duration: '',
@@ -1401,10 +1442,10 @@ function CourseManagement() {
   const addCourse = async () => {
     try {
       // Parse subjects and skills from strings if they're not arrays
-      const subjects = typeof newCourse.subjects === 'string' 
+      const subjects = typeof newCourse.subjects === 'string'
         ? newCourse.subjects.split(',').map(s => s.trim()).filter(s => s)
         : newCourse.subjects || [];
-      
+
       const skills = typeof newCourse.skills === 'string'
         ? newCourse.skills.split(',').map(s => s.trim()).filter(s => s)
         : newCourse.skills || [];
@@ -1490,7 +1531,7 @@ function CourseManagement() {
 
   const updateCourse = async () => {
     if (!editing) return;
-    
+
     try {
       const courseData = {
         ...newCourse,
@@ -1517,11 +1558,8 @@ function CourseManagement() {
         rating: 0,
         studentsEnrolled: 0,
         provider: '',
-        instructor: '',
-        price: 0,
         level: 'Beginner',
         category: 'Technology',
-        learningOutcomes: [],
         courseLink: ''
       });
     } catch (error) {
@@ -1548,11 +1586,8 @@ function CourseManagement() {
       rating: 0,
       studentsEnrolled: 0,
       provider: '',
-      instructor: '',
-      price: 0,
       level: 'Beginner',
       category: 'Technology',
-      learningOutcomes: [],
       courseLink: ''
     });
   };
@@ -1699,7 +1734,7 @@ function CourseManagement() {
               </p>
             </div>
           </div>
-          
+
           <div>
             <Label>Course Description</Label>
             <Textarea
@@ -1740,7 +1775,7 @@ function CourseManagement() {
               rows={2}
             />
           </div>
-          
+
           <div>
             <Label>Prerequisites (comma separated)</Label>
             <Textarea
@@ -1772,7 +1807,7 @@ function CourseManagement() {
                   rows={2}
                 />
               </div>
-              
+
               <div>
                 <Label>Module Topics (semicolon-separated for each module)</Label>
                 <Textarea
@@ -1789,7 +1824,7 @@ function CourseManagement() {
                   rows={3}
                 />
               </div>
-              
+
               <div>
                 <Label>Module Durations (comma-separated, matching order above)</Label>
                 <Input
@@ -1828,9 +1863,9 @@ function CourseManagement() {
               <Label htmlFor="isActive">Active Course</Label>
             </div>
           </div>
-          
-          <Button 
-            onClick={addCourse} 
+
+          <Button
+            onClick={addCourse}
             disabled={!newCourse.name || !newCourse.description}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -1875,7 +1910,7 @@ function CourseManagement() {
                           Update the course information below.
                         </DialogDescription>
                       </DialogHeader>
-                      
+
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -1887,7 +1922,7 @@ function CourseManagement() {
                               placeholder="Enter course name"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-short-name">Short Name</Label>
                             <Input
@@ -1909,7 +1944,7 @@ function CourseManagement() {
                               placeholder="4 years"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-fees">Fees (₹/year)</Label>
                             <Input
@@ -1920,7 +1955,7 @@ function CourseManagement() {
                               placeholder="50000"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-course-link">Course Link</Label>
                             <Input
@@ -1959,22 +1994,22 @@ function CourseManagement() {
                             <Textarea
                               id="edit-subjects"
                               value={(newCourse.subjects && Array.isArray(newCourse.subjects)) ? newCourse.subjects.join(', ') : ''}
-                              onChange={(e) => setNewCourse(prev => ({ 
-                                ...prev, 
+                              onChange={(e) => setNewCourse(prev => ({
+                                ...prev,
                                 subjects: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                               }))}
                               placeholder="Mathematics, Physics, Chemistry"
                               rows={2}
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-skills">Skills (comma-separated)</Label>
                             <Textarea
                               id="edit-skills"
                               value={(newCourse.skills && Array.isArray(newCourse.skills)) ? newCourse.skills.join(', ') : ''}
-                              onChange={(e) => setNewCourse(prev => ({ 
-                                ...prev, 
+                              onChange={(e) => setNewCourse(prev => ({
+                                ...prev,
                                 skills: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                               }))}
                               placeholder="Problem Solving, Critical Thinking"
@@ -1989,22 +2024,22 @@ function CourseManagement() {
                             <Textarea
                               id="edit-prerequisites"
                               value={(newCourse.prerequisites && Array.isArray(newCourse.prerequisites)) ? newCourse.prerequisites.join(', ') : ''}
-                              onChange={(e) => setNewCourse(prev => ({ 
-                                ...prev, 
+                              onChange={(e) => setNewCourse(prev => ({
+                                ...prev,
                                 prerequisites: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                               }))}
                               placeholder="Basic Math, English"
                               rows={2}
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-career-prospects">Career Prospects (comma-separated)</Label>
                             <Textarea
                               id="edit-career-prospects"
                               value={(newCourse.careerProspects && Array.isArray(newCourse.careerProspects)) ? newCourse.careerProspects.join(', ') : ''}
-                              onChange={(e) => setNewCourse(prev => ({ 
-                                ...prev, 
+                              onChange={(e) => setNewCourse(prev => ({
+                                ...prev,
                                 careerProspects: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                               }))}
                               placeholder="Software Engineer, Data Analyst"
@@ -2023,11 +2058,11 @@ function CourseManagement() {
                               placeholder="Institution/Platform name"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-level">Level</Label>
-                            <Select 
-                              value={newCourse.level || 'Beginner'} 
+                            <Select
+                              value={newCourse.level || 'Beginner'}
                               onValueChange={(value) => setNewCourse(prev => ({ ...prev, level: value }))}
                             >
                               <SelectTrigger>
@@ -2040,7 +2075,7 @@ function CourseManagement() {
                               </SelectContent>
                             </Select>
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-category">Category</Label>
                             <Input
@@ -2055,11 +2090,11 @@ function CourseManagement() {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label htmlFor="edit-mode">Mode</Label>
-                            <Select 
-                              value={newCourse.mode || 'Online'} 
+                            <Select
+                              value={newCourse.mode || 'Online'}
                               onValueChange={(value) => setNewCourse(prev => ({ ...prev, mode: value }))}
                             >
-                              
+
                               <SelectContent>
                                 <SelectItem value="Online">Online</SelectItem>
                                 <SelectItem value="Offline">Offline</SelectItem>
@@ -2067,7 +2102,7 @@ function CourseManagement() {
                               </SelectContent>
                             </Select>
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-rating">Rating (0-5)</Label>
                             <Input
@@ -2115,7 +2150,7 @@ function CourseManagement() {
                                 rows={2}
                               />
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-module-topics">Module Topics (semicolon-separated for each module)</Label>
                               <Textarea
@@ -2133,7 +2168,7 @@ function CourseManagement() {
                                 rows={3}
                               />
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-module-durations">Module Durations (comma-separated, matching order above)</Label>
                               <Input
@@ -2163,7 +2198,7 @@ function CourseManagement() {
                             />
                             <Label htmlFor="edit-certification">Certification Available</Label>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
                             <input
                               type="checkbox"
@@ -2188,7 +2223,7 @@ function CourseManagement() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  
+
                   <Button variant="destructive" size="sm" onClick={() => deleteCourse(course.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -2212,10 +2247,18 @@ function CourseManagement() {
 }
 
 // Career management component
+// Career management component with form helper type
+type CareerFormData = Omit<Partial<CareerPath>, 'requiredSkills' | 'higherEducation' | 'governmentExams' | 'industryTrends'> & {
+  requiredSkills?: string[] | string;
+  higherEducation?: string[] | string;
+  governmentExams?: string[] | string;
+  industryTrends?: string[] | string;
+};
+
 function CareerManagement() {
   const [careers, setCareers] = useState<CareerPath[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
-  const [newCareer, setNewCareer] = useState<Partial<CareerPath>>({
+  const [newCareer, setNewCareer] = useState<CareerFormData>({
     title: '',
     description: '',
     courseId: '',
@@ -2323,7 +2366,7 @@ function CareerManagement() {
 
   const updateCareer = async () => {
     if (!editing) return;
-    
+
     try {
       const careerData = {
         ...newCareer,
@@ -2430,7 +2473,7 @@ function CareerManagement() {
               />
             </div>
           </div>
-          
+
           <div>
             <Label>Career Description</Label>
             <Textarea
@@ -2515,7 +2558,7 @@ function CareerManagement() {
                   rows={2}
                 />
               </div>
-              
+
               <div>
                 <Label>Job Descriptions (one per line, matching order above)</Label>
                 <Textarea
@@ -2532,7 +2575,7 @@ function CareerManagement() {
                   rows={3}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Companies (semicolon-separated for each role)</Label>
@@ -2550,7 +2593,7 @@ function CareerManagement() {
                     rows={2}
                   />
                 </div>
-                
+
                 <div>
                   <Label>Requirements (semicolon-separated for each role)</Label>
                   <Textarea
@@ -2597,9 +2640,9 @@ function CareerManagement() {
               />
             </div>
           </div>
-          
-          <Button 
-            onClick={addCareer} 
+
+          <Button
+            onClick={addCareer}
             disabled={!newCareer.title || !newCareer.description}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -2642,7 +2685,7 @@ function CareerManagement() {
                           Update the career path information below.
                         </DialogDescription>
                       </DialogHeader>
-                      
+
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -2654,7 +2697,7 @@ function CareerManagement() {
                               placeholder="Enter career title"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-course-id">Course ID</Label>
                             <Input
@@ -2687,7 +2730,7 @@ function CareerManagement() {
                               placeholder="Good work-life balance"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-work-location">Work Location</Label>
                             <Input
@@ -2697,7 +2740,7 @@ function CareerManagement() {
                               placeholder="Office/Remote/Hybrid"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-work-culture">Work Culture</Label>
                             <Input
@@ -2716,23 +2759,29 @@ function CareerManagement() {
                               id="edit-min-salary"
                               type="number"
                               value={newCareer.averageSalary?.min || 0}
-                              onChange={(e) => setNewCareer(prev => ({ 
-                                ...prev, 
-                                averageSalary: { ...prev.averageSalary, min: parseInt(e.target.value) || 0 }
+                              onChange={(e) => setNewCareer(prev => ({
+                                ...prev,
+                                averageSalary: {
+                                  min: parseInt(e.target.value) || 0,
+                                  max: prev.averageSalary?.max || 0
+                                }
                               }))}
                               placeholder="300000"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-max-salary">Max Salary (₹)</Label>
                             <Input
                               id="edit-max-salary"
                               type="number"
                               value={newCareer.averageSalary?.max || 0}
-                              onChange={(e) => setNewCareer(prev => ({ 
-                                ...prev, 
-                                averageSalary: { ...prev.averageSalary, max: parseInt(e.target.value) || 0 }
+                              onChange={(e) => setNewCareer(prev => ({
+                                ...prev,
+                                averageSalary: {
+                                  min: prev.averageSalary?.min || 0,
+                                  max: parseInt(e.target.value) || 0
+                                }
                               }))}
                               placeholder="1000000"
                             />
@@ -2744,8 +2793,8 @@ function CareerManagement() {
                           <Textarea
                             id="edit-required-skills"
                             value={(newCareer.requiredSkills && Array.isArray(newCareer.requiredSkills)) ? newCareer.requiredSkills.join(', ') : ''}
-                            onChange={(e) => setNewCareer(prev => ({ 
-                              ...prev, 
+                            onChange={(e) => setNewCareer(prev => ({
+                              ...prev,
                               requiredSkills: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                             }))}
                             placeholder="Programming, Problem Solving, Communication"
@@ -2770,22 +2819,22 @@ function CareerManagement() {
                             <Textarea
                               id="edit-higher-education"
                               value={(newCareer.higherEducation && Array.isArray(newCareer.higherEducation)) ? newCareer.higherEducation.join(', ') : ''}
-                              onChange={(e) => setNewCareer(prev => ({ 
-                                ...prev, 
+                              onChange={(e) => setNewCareer(prev => ({
+                                ...prev,
                                 higherEducation: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                               }))}
                               placeholder="M.Tech, MBA, PhD"
                               rows={2}
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="edit-government-exams">Government Exams (comma-separated)</Label>
                             <Textarea
                               id="edit-government-exams"
                               value={(newCareer.governmentExams && Array.isArray(newCareer.governmentExams)) ? newCareer.governmentExams.join(', ') : ''}
-                              onChange={(e) => setNewCareer(prev => ({ 
-                                ...prev, 
+                              onChange={(e) => setNewCareer(prev => ({
+                                ...prev,
                                 governmentExams: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                               }))}
                               placeholder="GATE, UPSC, SSC"
@@ -2799,8 +2848,8 @@ function CareerManagement() {
                           <Textarea
                             id="edit-industry-trends"
                             value={(newCareer.industryTrends && Array.isArray(newCareer.industryTrends)) ? newCareer.industryTrends.join(', ') : ''}
-                            onChange={(e) => setNewCareer(prev => ({ 
-                              ...prev, 
+                            onChange={(e) => setNewCareer(prev => ({
+                              ...prev,
                               industryTrends: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                             }))}
                             placeholder="AI/ML, Cloud Computing, Remote Work"
@@ -2832,7 +2881,7 @@ function CareerManagement() {
                                 rows={2}
                               />
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-job-descriptions">Job Descriptions (one per line, matching order above)</Label>
                               <Textarea
@@ -2850,7 +2899,7 @@ function CareerManagement() {
                                 rows={3}
                               />
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <Label htmlFor="edit-job-companies">Companies (semicolon-separated for each role)</Label>
@@ -2869,7 +2918,7 @@ function CareerManagement() {
                                   rows={2}
                                 />
                               </div>
-                              
+
                               <div>
                                 <Label htmlFor="edit-job-requirements">Requirements (semicolon-separated for each role)</Label>
                                 <Textarea
@@ -2904,7 +2953,7 @@ function CareerManagement() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  
+
                   <Button variant="destructive" size="sm" onClick={() => deleteCareer(career.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -2975,7 +3024,7 @@ function UserManagement() {
 
   const updateUser = async () => {
     if (!editing) return;
-    
+
     try {
       const userData = {
         ...editUser,
@@ -3063,7 +3112,7 @@ function UserManagement() {
                             Update user information below.
                           </DialogDescription>
                         </DialogHeader>
-                        
+
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -3075,7 +3124,7 @@ function UserManagement() {
                                 placeholder="Enter display name"
                               />
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-email">Email</Label>
                               <Input
@@ -3099,22 +3148,28 @@ function UserManagement() {
                                 placeholder="Enter age"
                               />
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-class">Class</Label>
-                              <Input
-                                id="edit-class"
+                              <Select
                                 value={editUser.class || ''}
-                                onChange={(e) => setEditUser(prev => ({ ...prev, class: e.target.value }))}
-                                placeholder="Enter class"
-                              />
+                                onValueChange={(value) => setEditUser(prev => ({ ...prev, class: value as '10' | '12' }))}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select class" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="10">10th</SelectItem>
+                                  <SelectItem value="12">12th</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
-                            
+
                             <div>
                               <Label htmlFor="edit-gender">Gender</Label>
-                              <Select 
-                                value={editUser.gender || ''} 
-                                onValueChange={(value) => setEditUser(prev => ({ ...prev, gender: value }))}
+                              <Select
+                                value={editUser.gender || ''}
+                                onValueChange={(value) => setEditUser(prev => ({ ...prev, gender: value as 'male' | 'female' | 'other' }))}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select gender" />
@@ -3144,8 +3199,8 @@ function UserManagement() {
                             <Textarea
                               id="edit-interests"
                               value={(editUser.academicInterests && Array.isArray(editUser.academicInterests)) ? editUser.academicInterests.join(', ') : ''}
-                              onChange={(e) => setEditUser(prev => ({ 
-                                ...prev, 
+                              onChange={(e) => setEditUser(prev => ({
+                                ...prev,
                                 academicInterests: e.target.value.split(',').map(s => s.trim()).filter(s => s)
                               }))}
                               placeholder="Science, Technology, Arts"
@@ -3190,7 +3245,7 @@ function UserManagement() {
                         </div>
                       </DialogContent>
                     </Dialog>
-                    
+
                     <Button variant="destructive" size="sm" onClick={() => deleteUser(user.uid)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -3218,10 +3273,15 @@ function UserManagement() {
 }
 
 // Resource management component
+// Resource management component with form helper type
+type ResourceFormData = Omit<Partial<Resource>, 'subjects'> & {
+  subjects?: string[] | string;
+};
+
 function ResourceManagement() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
-  const [newResource, setNewResource] = useState<Partial<Resource>>({
+  const [newResource, setNewResource] = useState<ResourceFormData>({
     title: '',
     description: '',
     type: 'website',
@@ -3257,15 +3317,15 @@ function ResourceManagement() {
 
       const resourceData = {
         ...newResource,
-        subjects: Array.isArray(newResource.subjects) ? newResource.subjects : 
-                  typeof newResource.subjects === 'string' ? 
-                  newResource.subjects.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : [],
+        subjects: Array.isArray(newResource.subjects) ? newResource.subjects :
+          typeof newResource.subjects === 'string' ?
+            newResource.subjects.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : [],
         createdAt: new Date(),
         isVerified: newResource.isVerified || false
       };
 
       await addDoc(collection(db, 'resources'), resourceData);
-      
+
       setNewResource({
         title: '',
         description: '',
@@ -3275,7 +3335,7 @@ function ResourceManagement() {
         subjects: [],
         isVerified: false
       });
-      
+
       fetchResources();
       alert('Resource added successfully!');
     } catch (error) {
@@ -3291,9 +3351,7 @@ function ResourceManagement() {
 
       const updatedData = {
         ...resource,
-        subjects: Array.isArray(resource.subjects) ? resource.subjects : 
-                  typeof resource.subjects === 'string' ? 
-                  resource.subjects.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : []
+        subjects: Array.isArray(resource.subjects) ? resource.subjects : []
       };
 
       await updateDoc(doc(db, 'resources', id), updatedData);
@@ -3320,7 +3378,7 @@ function ResourceManagement() {
   };
 
   const handleResourceChange = (id: string, field: keyof Resource, value: any) => {
-    setResources(prev => prev.map(resource => 
+    setResources(prev => prev.map(resource =>
       resource.id === id ? { ...resource, [field]: value } : resource
     ));
   };
@@ -3364,8 +3422,8 @@ function ResourceManagement() {
 
             <div>
               <Label htmlFor="resource-type">Type</Label>
-              <Select 
-                value={newResource.type || 'website'} 
+              <Select
+                value={newResource.type || 'website'}
                 onValueChange={(value) => setNewResource(prev => ({ ...prev, type: value as Resource['type'] }))}
               >
                 <SelectTrigger>
@@ -3383,8 +3441,8 @@ function ResourceManagement() {
 
             <div>
               <Label htmlFor="resource-category">Category</Label>
-              <Select 
-                value={newResource.category || undefined} 
+              <Select
+                value={newResource.category || undefined}
                 onValueChange={(value) => setNewResource(prev => ({ ...prev, category: value }))}
               >
                 <SelectTrigger>
@@ -3417,8 +3475,8 @@ function ResourceManagement() {
             <Input
               id="resource-subjects"
               value={Array.isArray(newResource.subjects) ? newResource.subjects.join(', ') : ''}
-              onChange={(e) => setNewResource(prev => ({ 
-                ...prev, 
+              onChange={(e) => setNewResource(prev => ({
+                ...prev,
                 subjects: e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
               }))}
               placeholder="Mathematics, Physics, Chemistry"
@@ -3458,7 +3516,7 @@ function ResourceManagement() {
                         onChange={(e) => handleResourceChange(resource.id, 'title', e.target.value)}
                       />
                     </div>
-                    
+
                     <div>
                       <Label>URL</Label>
                       <Input
@@ -3469,8 +3527,8 @@ function ResourceManagement() {
 
                     <div>
                       <Label>Type</Label>
-                      <Select 
-                        value={resource.type} 
+                      <Select
+                        value={resource.type}
                         onValueChange={(value) => handleResourceChange(resource.id, 'type', value)}
                       >
                         <SelectTrigger>
@@ -3488,8 +3546,8 @@ function ResourceManagement() {
 
                     <div>
                       <Label>Category</Label>
-                      <Select 
-                        value={resource.category || undefined} 
+                      <Select
+                        value={resource.category || undefined}
                         onValueChange={(value) => handleResourceChange(resource.id, 'category', value)}
                       >
                         <SelectTrigger>
@@ -3519,7 +3577,7 @@ function ResourceManagement() {
                     <Label>Subjects</Label>
                     <Input
                       value={resource.subjects.join(', ')}
-                      onChange={(e) => handleResourceChange(resource.id, 'subjects', 
+                      onChange={(e) => handleResourceChange(resource.id, 'subjects',
                         e.target.value.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
                       )}
                     />
@@ -3558,16 +3616,16 @@ function ResourceManagement() {
                         {resource.type.charAt(0).toUpperCase() + resource.type.slice(1)}
                       </Badge>
                     </div>
-                    
+
                     <p className="text-gray-600 text-sm mb-2">{resource.description}</p>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <span>Category: {resource.category}</span>
                       <span>URL: <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                         {resource.url.substring(0, 50)}...
                       </a></span>
                     </div>
-                    
+
                     {resource.subjects.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {resource.subjects.map(subject => (
@@ -3578,18 +3636,18 @@ function ResourceManagement() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex gap-2 ml-4">
-                    <Button 
-                      onClick={() => setEditing(resource.id)} 
-                      variant="outline" 
+                    <Button
+                      onClick={() => setEditing(resource.id)}
+                      variant="outline"
                       size="sm"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      onClick={() => deleteResource(resource.id)} 
-                      variant="outline" 
+                    <Button
+                      onClick={() => deleteResource(resource.id)}
+                      variant="outline"
                       size="sm"
                       className="text-red-600 hover:text-red-700"
                     >
@@ -3623,7 +3681,7 @@ function useAdminStats() {
     const fetchStats = async () => {
       try {
         console.log('Fetching admin stats...');
-        
+
         // Fetch users count
         const usersSnapshot = await getDocs(collection(db, 'users'));
         const totalUsers = usersSnapshot.size;
@@ -3643,19 +3701,19 @@ function useAdminStats() {
         // Fetch total scholarships count (both active and inactive)
         const scholarshipsSnapshot = await getDocs(collection(db, 'scholarships'));
         const totalScholarships = scholarshipsSnapshot.size;
-        
+
         // Count active scholarships (with future deadlines and isActive = true)
         const currentDate = new Date();
         const activeScholarships = scholarshipsSnapshot.docs.filter(doc => {
           const scholarship = doc.data();
           // Check if scholarship is marked as active
           if (!scholarship.isActive) return false;
-          
+
           // Check if deadline is in the future
           if (scholarship.applicationDeadline) {
             try {
-              const deadline = scholarship.applicationDeadline.toDate ? 
-                scholarship.applicationDeadline.toDate() : 
+              const deadline = scholarship.applicationDeadline.toDate ?
+                scholarship.applicationDeadline.toDate() :
                 new Date(scholarship.applicationDeadline);
               return !isNaN(deadline.getTime()) && deadline > currentDate;
             } catch {
@@ -3671,13 +3729,13 @@ function useAdminStats() {
           // Try 'quizResults' collection first
           const quizResultsSnapshot = await getDocs(collection(db, 'quizResults'));
           quizCompletions = quizResultsSnapshot.size;
-          
+
           // If no results in 'quizResults', try 'quiz_results'
           if (quizCompletions === 0) {
             const altQuizResultsSnapshot = await getDocs(collection(db, 'quiz_results'));
             quizCompletions = altQuizResultsSnapshot.size;
           }
-          
+
           // If still no results, try counting from users' quiz data
           if (quizCompletions === 0) {
             const usersWithQuizResults = usersSnapshot.docs.filter(doc => {
@@ -3704,7 +3762,7 @@ function useAdminStats() {
           quizCompletions,
           lastUpdated: new Date()
         });
-        
+
         console.log('Stats updated:', {
           totalUsers,
           totalColleges,
@@ -3721,10 +3779,10 @@ function useAdminStats() {
 
     // Initial fetch
     fetchStats();
-    
+
     // Set up interval to refresh stats every 30 seconds
     const interval = setInterval(fetchStats, 30000);
-    
+
     // Cleanup interval on unmount
     return () => clearInterval(interval);
   }, []);
@@ -3777,7 +3835,7 @@ export default function AdminPanel() {
     <AdminRoute>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        
+
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
           {/* Header */}
           <motion.div
@@ -3843,8 +3901,8 @@ export default function AdminPanel() {
                     Last updated: {stats.lastUpdated.toLocaleTimeString()} • Auto-refreshes every 30s
                   </p>
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => window.location.reload()}
                   className="flex items-center self-start sm:self-center"

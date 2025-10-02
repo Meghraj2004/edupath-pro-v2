@@ -172,9 +172,9 @@ export default function CoursesPage() {
           itemType: 'career',
           itemData: {
             title: career.title,
-            industry: career.industry,
+            description: career.description,
             averageSalary: career.averageSalary,
-            growthRate: career.growthRate
+            growthProspects: career.growthProspects
           },
           createdAt: new Date()
         });
