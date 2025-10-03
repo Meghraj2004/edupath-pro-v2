@@ -71,21 +71,8 @@ const Separator = ({ className = "" }: { className?: string }) => (
 );
 
 interface UserSettings {
-  notifications: {
-    email: boolean;
-    push: boolean;
-    quiz_reminders: boolean;
-    scholarship_alerts: boolean;
-    course_updates: boolean;
-    college_news: boolean;
-  };
-  privacy: {
-    profile_visibility: 'public' | 'private' | 'friends';
-    show_email: boolean;
-    show_quiz_results: boolean;
-    data_sharing: boolean;
-    analytics: boolean;
-  };
+ 
+  
   preferences: {
     theme: 'light' | 'dark' | 'system';
     language: string;
@@ -95,21 +82,6 @@ interface UserSettings {
 }
 
 const defaultSettings: UserSettings = {
-  notifications: {
-    email: true,
-    push: true,
-    quiz_reminders: true,
-    scholarship_alerts: true,
-    course_updates: false,
-    college_news: false,
-  },
-  privacy: {
-    profile_visibility: 'public',
-    show_email: false,
-    show_quiz_results: true,
-    data_sharing: false,
-    analytics: true,
-  },
   preferences: {
     theme: 'system',
     language: 'en',
@@ -311,19 +283,31 @@ export default function SettingsPage() {
     setLoading(true);
 
     try {
-      // Delete user document from Firestore
+      // First mark user as deleted in Firestore (for data retention/audit purposes)
       await updateDoc(doc(db, 'users', user!.uid), {
         deleted: true,
         deletedAt: new Date(),
       });
 
-      // Delete Firebase auth user
+      // Delete Firebase auth user (this will also sign them out)
       await deleteUser(firebaseUser);
-    } catch (error) {
+      
+      // Account deletion successful - user will be redirected to landing page automatically
+      console.log('Account deleted successfully');
+      
+    } catch (error: any) {
       console.error('Error deleting account:', error);
       setSaveStatus('error');
+      
+      // Check if the error requires re-authentication
+      if (error.code === 'auth/requires-recent-login') {
+        alert('For security reasons, please sign out and sign back in, then try deleting your account again.');
+      } else {
+        alert('Failed to delete account. Please try again or contact support.');
+      }
     } finally {
       setLoading(false);
+      setDeleteConfirmation(''); // Reset confirmation field
     }
   };
 
@@ -378,14 +362,8 @@ export default function SettingsPage() {
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">Profile</span>
                 </TabsTrigger>
-                <TabsTrigger value="notifications" className="flex items-center space-x-2">
-                  <Bell className="h-4 w-4" />
-                  <span className="hidden sm:inline">Notifications</span>
-                </TabsTrigger>
-                <TabsTrigger value="privacy" className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4" />
-                  <span className="hidden sm:inline">Privacy</span>
-                </TabsTrigger>
+                
+                
                 <TabsTrigger value="security" className="flex items-center space-x-2">
                   <Key className="h-4 w-4" />
                   <span className="hidden sm:inline">Security</span>
@@ -535,257 +513,6 @@ export default function SettingsPage() {
                       <Button onClick={saveProfile} disabled={loading}>
                         <Save className="h-4 w-4 mr-2" />
                         Save Profile
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Notification Settings */}
-              <TabsContent value="notifications" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Notification Preferences</CardTitle>
-                    <CardDescription>Choose what notifications you want to receive</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Email Notifications</h4>
-                          <p className="text-sm text-gray-500">Receive notifications via email</p>
-                        </div>
-                        <Switch
-                          checked={settings.notifications.email}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              notifications: { ...prev.notifications, email: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Push Notifications</h4>
-                          <p className="text-sm text-gray-500">Receive browser push notifications</p>
-                        </div>
-                        <Switch
-                          checked={settings.notifications.push}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              notifications: { ...prev.notifications, push: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <Separator />
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Quiz Reminders</h4>
-                          <p className="text-sm text-gray-500">Get reminded to take career assessment quizzes</p>
-                        </div>
-                        <Switch
-                          checked={settings.notifications.quiz_reminders}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              notifications: { ...prev.notifications, quiz_reminders: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Scholarship Alerts</h4>
-                          <p className="text-sm text-gray-500">Be notified about new scholarship opportunities</p>
-                        </div>
-                        <Switch
-                          checked={settings.notifications.scholarship_alerts}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              notifications: { ...prev.notifications, scholarship_alerts: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Course Updates</h4>
-                          <p className="text-sm text-gray-500">Get updates about new courses and programs</p>
-                        </div>
-                        <Switch
-                          checked={settings.notifications.course_updates}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              notifications: { ...prev.notifications, course_updates: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">College News</h4>
-                          <p className="text-sm text-gray-500">Receive news and updates from colleges</p>
-                        </div>
-                        <Switch
-                          checked={settings.notifications.college_news}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              notifications: { ...prev.notifications, college_news: checked }
-                            }))
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-2">
-                      <Label>Email Frequency</Label>
-                      <Select
-                        value={settings.preferences.email_frequency}
-                        onValueChange={(value: 'immediate' | 'daily' | 'weekly' | 'never') => 
-                          setSettings(prev => ({
-                            ...prev,
-                            preferences: { ...prev.preferences, email_frequency: value }
-                          }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="immediate">Immediate</SelectItem>
-                          <SelectItem value="daily">Daily Digest</SelectItem>
-                          <SelectItem value="weekly">Weekly Summary</SelectItem>
-                          <SelectItem value="never">Never</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button onClick={saveSettings} disabled={loading}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Preferences
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Privacy Settings */}
-              <TabsContent value="privacy" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Privacy Settings</CardTitle>
-                    <CardDescription>Control who can see your information and how it's used</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Profile Visibility</Label>
-                        <Select
-                          value={settings.privacy.profile_visibility}
-                          onValueChange={(value: 'public' | 'private' | 'friends') => 
-                            setSettings(prev => ({
-                              ...prev,
-                              privacy: { ...prev.privacy, profile_visibility: value }
-                            }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="public">Public - Anyone can see</SelectItem>
-                            <SelectItem value="friends">Friends Only</SelectItem>
-                            <SelectItem value="private">Private - Only me</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <Separator />
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Show Email Address</h4>
-                          <p className="text-sm text-gray-500">Allow others to see your email address</p>
-                        </div>
-                        <Switch
-                          checked={settings.privacy.show_email}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              privacy: { ...prev.privacy, show_email: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Show Quiz Results</h4>
-                          <p className="text-sm text-gray-500">Allow others to see your career quiz results</p>
-                        </div>
-                        <Switch
-                          checked={settings.privacy.show_quiz_results}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              privacy: { ...prev.privacy, show_quiz_results: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Data Sharing</h4>
-                          <p className="text-sm text-gray-500">Share anonymized data to improve our services</p>
-                        </div>
-                        <Switch
-                          checked={settings.privacy.data_sharing}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              privacy: { ...prev.privacy, data_sharing: checked }
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h4 className="font-medium">Analytics</h4>
-                          <p className="text-sm text-gray-500">Help us improve by sharing usage analytics</p>
-                        </div>
-                        <Switch
-                          checked={settings.privacy.analytics}
-                          onCheckedChange={(checked: boolean) => 
-                            setSettings(prev => ({
-                              ...prev,
-                              privacy: { ...prev.privacy, analytics: checked }
-                            }))
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button onClick={saveSettings} disabled={loading}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Privacy Settings
                       </Button>
                     </div>
                   </CardContent>
@@ -1045,14 +772,16 @@ export default function SettingsPage() {
                               <DialogTitle>Delete Account</DialogTitle>
                               <DialogDescription>
                                 Are you sure you want to delete your account? This will permanently remove all your data including:
-                                <ul className="list-disc list-inside mt-2 space-y-1">
-                                  <li>Profile information</li>
-                                  <li>Quiz results and recommendations</li>
-                                  <li>Saved colleges and courses</li>
-                                  <li>Application history</li>
-                                </ul>
                               </DialogDescription>
                             </DialogHeader>
+                            <div className="mt-2">
+                              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                <li>Profile information</li>
+                                <li>Quiz results and recommendations</li>
+                                <li>Saved colleges and courses</li>
+                                <li>Application history</li>
+                              </ul>
+                            </div>
                             <div className="space-y-4">
                               <div className="space-y-2">
                                 <Label htmlFor="deleteConfirmation">

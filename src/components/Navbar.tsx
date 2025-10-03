@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -31,6 +32,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const { user, logout, isAdmin } = useAuth();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -45,6 +47,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
+      router.push('/'); // Redirect to landing page after logout
     } catch (error) {
       console.error('Logout failed:', error);
     }

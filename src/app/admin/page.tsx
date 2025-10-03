@@ -37,6 +37,57 @@ import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase
 import { db } from '@/lib/firebase';
 import { College, Scholarship, Course, CareerPath, User, Resource } from '@/types';
 
+// Indian States with PIN code ranges
+const INDIAN_STATES = [
+  { name: 'Andhra Pradesh', pinRanges: ['515***', '516***', '517***', '518***', '520***', '521***', '522***', '523***', '524***', '533***', '534***'] },
+  { name: 'Arunachal Pradesh', pinRanges: ['790***', '791***', '792***'] },
+  { name: 'Assam', pinRanges: ['781***', '782***', '783***', '784***', '785***', '786***', '787***', '788***'] },
+  { name: 'Bihar', pinRanges: ['800***', '801***', '802***', '803***', '804***', '805***', '811***', '812***', '813***', '814***', '815***', '816***', '821***', '822***', '823***', '824***', '825***', '831***', '832***', '833***', '834***', '835***'] },
+  { name: 'Chhattisgarh', pinRanges: ['490***', '491***', '492***', '493***', '494***', '495***', '496***', '497***'] },
+  { name: 'Goa', pinRanges: ['403***'] },
+  { name: 'Gujarat', pinRanges: ['360***', '361***', '362***', '363***', '364***', '370***', '380***', '381***', '382***', '383***', '384***', '385***', '387***', '388***', '389***', '390***', '391***', '392***', '393***', '394***', '395***', '396***'] },
+  { name: 'Haryana', pinRanges: ['121***', '122***', '123***', '124***', '125***', '126***', '127***', '128***', '129***', '130***', '131***', '132***', '133***', '134***', '135***'] },
+  { name: 'Himachal Pradesh', pinRanges: ['171***', '172***', '173***', '174***', '175***', '176***', '177***'] },
+  { name: 'Jharkhand', pinRanges: ['814***', '815***', '825***', '826***', '827***', '828***', '829***', '831***', '832***', '833***', '834***', '835***'] },
+  { name: 'Karnataka', pinRanges: ['560***', '561***', '562***', '563***', '564***', '565***', '570***', '571***', '572***', '573***', '574***', '575***', '576***', '577***', '581***', '582***', '583***', '584***', '585***', '586***', '587***', '590***', '591***', '592***'] },
+  { name: 'Kerala', pinRanges: ['670***', '671***', '672***', '673***', '674***', '675***', '676***', '678***', '679***', '680***', '681***', '682***', '683***', '684***', '685***', '686***', '687***', '688***', '689***', '690***', '691***', '692***', '693***', '695***'] },
+  { name: 'Madhya Pradesh', pinRanges: ['450***', '451***', '452***', '453***', '454***', '455***', '456***', '457***', '458***', '459***', '460***', '461***', '462***', '463***', '464***', '465***', '466***', '467***', '468***', '469***', '470***', '471***', '472***', '473***', '474***', '480***', '481***', '482***', '483***', '484***', '485***', '486***', '487***', '488***'] },
+  { name: 'Maharashtra', pinRanges: ['400***', '401***', '402***', '403***', '410***', '411***', '412***', '413***', '414***', '415***', '416***', '417***', '421***', '422***', '423***', '424***', '425***', '431***', '440***', '441***', '442***', '443***', '444***', '445***'] },
+  { name: 'Manipur', pinRanges: ['795***'] },
+  { name: 'Meghalaya', pinRanges: ['793***', '794***'] },
+  { name: 'Mizoram', pinRanges: ['796***'] },
+  { name: 'Nagaland', pinRanges: ['797***', '798***'] },
+  { name: 'Odisha', pinRanges: ['751***', '752***', '753***', '754***', '755***', '756***', '757***', '758***', '759***', '760***', '761***', '762***', '763***', '764***', '765***', '766***', '767***', '768***', '769***', '770***'] },
+  { name: 'Punjab', pinRanges: ['140***', '141***', '142***', '143***', '144***', '145***', '146***', '147***', '148***', '151***', '152***', '153***', '155***', '160***', '161***'] },
+  { name: 'Rajasthan', pinRanges: ['301***', '302***', '303***', '304***', '305***', '306***', '307***', '311***', '312***', '313***', '314***', '321***', '322***', '323***', '324***', '325***', '326***', '327***', '331***', '332***', '333***', '334***', '335***', '341***', '342***', '343***', '344***', '345***'] },
+  { name: 'Sikkim', pinRanges: ['737***'] },
+  { name: 'Tamil Nadu', pinRanges: ['600***', '601***', '602***', '603***', '604***', '605***', '606***', '607***', '608***', '609***', '610***', '611***', '612***', '613***', '614***', '621***', '622***', '623***', '624***', '625***', '626***', '627***', '628***', '629***', '630***', '631***', '632***', '633***', '634***', '635***', '636***', '637***', '638***', '639***', '641***', '642***', '643***'] },
+  { name: 'Telangana', pinRanges: ['500***', '501***', '502***', '503***', '504***', '505***', '506***', '507***', '508***', '509***'] },
+  { name: 'Tripura', pinRanges: ['799***'] },
+  { name: 'Uttar Pradesh', pinRanges: ['201***', '202***', '203***', '204***', '205***', '206***', '207***', '208***', '209***', '210***', '211***', '212***', '221***', '222***', '223***', '224***', '225***', '226***', '227***', '228***', '229***', '230***', '231***', '232***', '233***', '241***', '242***', '243***', '244***', '245***', '246***', '247***', '248***', '249***', '250***', '251***', '261***', '262***', '263***', '271***', '272***', '273***', '274***', '275***', '276***', '277***', '281***', '282***', '283***'] },
+  { name: 'Uttarakhand', pinRanges: ['244***', '245***', '246***', '247***', '248***', '249***', '263***'] },
+  { name: 'West Bengal', pinRanges: ['700***', '701***', '711***', '712***', '713***', '721***', '722***', '731***', '732***', '733***', '734***', '735***', '736***', '741***', '742***', '743***'] },
+  { name: 'Delhi', pinRanges: ['110***'] },
+  { name: 'Jammu and Kashmir', pinRanges: ['180***', '181***', '182***', '183***', '184***', '185***', '190***', '191***', '192***', '193***', '194***', '195***'] },
+  { name: 'Ladakh', pinRanges: ['194***'] },
+  { name: 'Andaman and Nicobar Islands', pinRanges: ['744***'] },
+  { name: 'Chandigarh', pinRanges: ['160***'] },
+  { name: 'Dadra and Nagar Haveli and Daman and Diu', pinRanges: ['396***'] },
+  { name: 'Lakshadweep', pinRanges: ['682***'] },
+  { name: 'Puducherry', pinRanges: ['605***', '609***'] }
+];
+
+// Function to validate PIN code against selected state
+const validatePinCode = (state: string, pincode: string): boolean => {
+  if (!state || !pincode || pincode.length !== 6) return false;
+  
+  const stateData = INDIAN_STATES.find(s => s.name === state);
+  if (!stateData) return false;
+  
+  const pinPrefix = pincode.substring(0, 3);
+  return stateData.pinRanges.some(range => range.startsWith(pinPrefix));
+};
+
 // Admin login component
 function AdminLogin() {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -439,25 +490,65 @@ function CollegeManagement() {
             </div>
             <div>
               <Label>State</Label>
-              <Input
+              <Select
                 value={newCollege.location?.state || ''}
-                onChange={(e) => setNewCollege(prev => ({
+                onValueChange={(value) => setNewCollege(prev => ({
                   ...prev,
-                  location: { ...prev.location!, state: e.target.value }
+                  location: { ...prev.location!, state: value, pincode: '' } // Reset pincode when state changes
                 }))}
-                placeholder="Enter state"
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDIAN_STATES.map(state => (
+                    <SelectItem key={state.name} value={state.name}>
+                      {state.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Pincode</Label>
-              <Input
-                value={newCollege.location?.pincode || ''}
-                onChange={(e) => setNewCollege(prev => ({
-                  ...prev,
-                  location: { ...prev.location!, pincode: e.target.value }
-                }))}
-                placeholder="Enter pincode"
-              />
+              <div className="relative">
+                <Input
+                  value={newCollege.location?.pincode || ''}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').substring(0, 6); // Only digits, max 6
+                    setNewCollege(prev => ({
+                      ...prev,
+                      location: { ...prev.location!, pincode: value }
+                    }));
+                  }}
+                  placeholder="Enter 6-digit pincode"
+                  maxLength={6}
+                  className={`${
+                    newCollege.location?.pincode && newCollege.location?.state && 
+                    !validatePinCode(newCollege.location.state, newCollege.location.pincode)
+                      ? 'border-red-500 focus:ring-red-500'
+                      : newCollege.location?.pincode && newCollege.location?.state &&
+                        validatePinCode(newCollege.location.state, newCollege.location.pincode)
+                      ? 'border-green-500 focus:ring-green-500'
+                      : ''
+                  }`}
+                />
+                {newCollege.location?.pincode && newCollege.location?.state && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {validatePinCode(newCollege.location.state, newCollege.location.pincode) ? (
+                      <span className="text-green-500 text-sm">✓</span>
+                    ) : (
+                      <span className="text-red-500 text-sm">✗</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              {newCollege.location?.pincode && newCollege.location?.state && 
+               !validatePinCode(newCollege.location.state, newCollege.location.pincode) && (
+                <p className="text-sm text-red-500 mt-1">
+                  Invalid PIN code for {newCollege.location.state}. Please enter a valid PIN code.
+                </p>
+              )}
             </div>
             <div>
               <Label>Website</Label>
@@ -623,38 +714,77 @@ function CollegeManagement() {
 
                           <div>
                             <Label htmlFor="edit-state">State</Label>
-                            <Input
-                              id="edit-state"
+                            <Select
                               value={newCollege.location?.state || ''}
-                              onChange={(e) => setNewCollege(prev => ({
+                              onValueChange={(value) => setNewCollege(prev => ({
                                 ...prev,
                                 location: {
                                   district: prev.location?.district || '',
-                                  state: e.target.value,
-                                  pincode: prev.location?.pincode || '',
+                                  state: value,
+                                  pincode: '', // Reset pincode when state changes
                                   coordinates: prev.location?.coordinates
                                 }
                               }))}
-                              placeholder="Enter state"
-                            />
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select state" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {INDIAN_STATES.map(state => (
+                                  <SelectItem key={state.name} value={state.name}>
+                                    {state.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
 
                           <div>
                             <Label htmlFor="edit-pincode">Pincode</Label>
-                            <Input
-                              id="edit-pincode"
-                              value={newCollege.location?.pincode || ''}
-                              onChange={(e) => setNewCollege(prev => ({
-                                ...prev,
-                                location: {
-                                  district: prev.location?.district || '',
-                                  state: prev.location?.state || '',
-                                  pincode: e.target.value,
-                                  coordinates: prev.location?.coordinates
-                                }
-                              }))}
-                              placeholder="Enter pincode"
-                            />
+                            <div className="relative">
+                              <Input
+                                id="edit-pincode"
+                                value={newCollege.location?.pincode || ''}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, '').substring(0, 6);
+                                  setNewCollege(prev => ({
+                                    ...prev,
+                                    location: {
+                                      district: prev.location?.district || '',
+                                      state: prev.location?.state || '',
+                                      pincode: value,
+                                      coordinates: prev.location?.coordinates
+                                    }
+                                  }));
+                                }}
+                                placeholder="Enter 6-digit pincode"
+                                maxLength={6}
+                                className={`${
+                                  newCollege.location?.pincode && newCollege.location?.state && 
+                                  !validatePinCode(newCollege.location.state, newCollege.location.pincode)
+                                    ? 'border-red-500 focus:ring-red-500'
+                                    : newCollege.location?.pincode && newCollege.location?.state &&
+                                      validatePinCode(newCollege.location.state, newCollege.location.pincode)
+                                    ? 'border-green-500 focus:ring-green-500'
+                                    : ''
+                                }`}
+                              />
+                              {newCollege.location?.pincode && newCollege.location?.state && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  {validatePinCode(newCollege.location.state, newCollege.location.pincode) ? (
+                                    <span className="text-green-500 text-sm">✓</span>
+                                  ) : (
+                                    <span className="text-red-500 text-sm">✗</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {newCollege.location?.pincode && newCollege.location?.state && 
+                             !validatePinCode(newCollege.location.state, newCollege.location.pincode) && (
+                              <p className="text-sm text-red-500 mt-1">
+                                Invalid PIN code for {newCollege.location.state}. Please enter a valid PIN code.
+                              </p>
+                            )}
                           </div>
                         </div>
 

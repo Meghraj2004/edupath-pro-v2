@@ -1589,6 +1589,17 @@ export default function Dashboard() {
                   <span>Contact Us</span>
                 </Button>
               </Link>
+
+              <Link href="/">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="flex items-center space-x-2 hover:bg-purple-50 hover:text-purple-600 border-purple-200 min-w-[200px]"
+                >
+                  <GraduationCap className="h-5 w-5" />
+                  <span>Back to Landing</span>
+                </Button>
+              </Link>
             </div>
             
             <div className="text-center mt-6">

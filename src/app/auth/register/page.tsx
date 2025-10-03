@@ -37,9 +37,32 @@ export default function RegisterPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const validatePassword = (password: string) => {
+    const rules = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasSpecialChar: /[@#$%&!*?]/.test(password)
+    };
+    
+    const errors = [];
+    if (!rules.minLength) errors.push('At least 8 characters');
+    if (!rules.hasUppercase) errors.push('At least 1 uppercase letter');
+    if (!rules.hasLowercase) errors.push('At least 1 lowercase letter');
+    if (!rules.hasSpecialChar) errors.push('At least 1 special character (@, #, $, %, &, !, *, ?)');
+    
+    return { isValid: errors.length === 0, errors, rules };
+  };
+
   const validateForm = () => {
     if (!formData.displayName || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all required fields');
+      return false;
+    }
+
+    const passwordCheck = validatePassword(formData.password);
+    if (!passwordCheck.isValid) {
+      setError(`Password must have: ${passwordCheck.errors.join(', ')}`);
       return false;
     }
 
@@ -74,7 +97,7 @@ export default function RegisterPage() {
       };
 
       await signUp(formData.email, formData.password, additionalData);
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (error: any) {
       console.error('Registration error:', error);
       setError(error.message || 'Failed to create account. Please try again.');
@@ -89,7 +112,7 @@ export default function RegisterPage() {
 
     try {
       await signInWithGoogle();
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (error: any) {
       console.error('Google sign in error:', error);
       setError(error.message || 'Failed to sign in with Google');
@@ -264,6 +287,31 @@ export default function RegisterPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  
+                  {/* Password Strength Indicator */}
+                  {formData.password && (
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-600">Password Requirements:</div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className={`flex items-center ${validatePassword(formData.password).rules.minLength ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div className={`w-2 h-2 rounded-full mr-2 ${validatePassword(formData.password).rules.minLength ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          8+ characters
+                        </div>
+                        <div className={`flex items-center ${validatePassword(formData.password).rules.hasUppercase ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div className={`w-2 h-2 rounded-full mr-2 ${validatePassword(formData.password).rules.hasUppercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          Uppercase letter
+                        </div>
+                        <div className={`flex items-center ${validatePassword(formData.password).rules.hasLowercase ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div className={`w-2 h-2 rounded-full mr-2 ${validatePassword(formData.password).rules.hasLowercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          Lowercase letter
+                        </div>
+                        <div className={`flex items-center ${validatePassword(formData.password).rules.hasSpecialChar ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div className={`w-2 h-2 rounded-full mr-2 ${validatePassword(formData.password).rules.hasSpecialChar ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          Special character
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

@@ -1,13 +1,14 @@
 {
-  "name": "edupath-pro",
+  "name": "career-education",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build --no-lint",
     "start": "next start",
-    "lint": "eslint"
-  },
+    "lint": "eslint",
+    "export": "next export"
+  },  
   "dependencies": {
     "@firebase/app": "^0.14.3",
     "@firebase/auth": "^1.11.0",

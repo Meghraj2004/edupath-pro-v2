@@ -88,17 +88,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      // Don't manually set loading - let onAuthStateChanged handle it
     } catch (error) {
-      setLoading(false);
       throw error;
     }
   };
 
   const signUp = async (email: string, password: string, additionalData?: Partial<User>) => {
-    setLoading(true);
     try {
       const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -122,13 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await updateProfile(firebaseUser, { displayName: additionalData.displayName });
       }
     } catch (error) {
-      setLoading(false);
       throw error;
     }
   };
 
   const signInWithGoogle = async () => {
-    setLoading(true);
     try {
       const { user: firebaseUser } = await signInWithPopup(auth, googleProvider);
       
@@ -148,7 +144,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
       }
     } catch (error) {
-      setLoading(false);
       throw error;
     }
   };

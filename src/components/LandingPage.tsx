@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,37 +31,43 @@ const features = [
     icon: Brain,
     title: 'Smart Aptitude Quiz',
     description: 'Take our comprehensive assessment to discover your strengths, interests, and ideal career paths.',
-    color: 'from-blue-500 to-cyan-500'
+    color: 'from-blue-500 to-cyan-500',
+    href: '/quiz'
   },
   {
     icon: Map,
     title: 'Course-to-Career Mapping',
     description: 'Visualize clear pathways from your chosen course to various career opportunities.',
-    color: 'from-purple-500 to-pink-500'
+    color: 'from-purple-500 to-pink-500',
+    href: '/courses'
   },
   {
     icon: Building2,
     title: 'College Directory',
     description: 'Find nearby government colleges with detailed information about courses, fees, and facilities.',
-    color: 'from-green-500 to-emerald-500'
+    color: 'from-green-500 to-emerald-500',
+    href: '/colleges'
   },
   {
     icon: Trophy,
     title: 'Scholarship Resources',
     description: 'Access government scholarships and free educational resources tailored to your profile.',
-    color: 'from-orange-500 to-red-500'
+    color: 'from-orange-500 to-red-500',
+    href: '/scholarships'
   },
   {
     icon: Bell,
     title: 'Timeline Tracker',
     description: 'Never miss important dates with personalized notifications for admissions and scholarships.',
-    color: 'from-indigo-500 to-blue-500'
+    color: 'from-indigo-500 to-blue-500',
+    href: '/timeline'
   },
   {
     icon: Sparkles,
     title: 'AI Recommendations',
     description: 'Get personalized suggestions for courses, colleges, and career paths based on your profile.',
-    color: 'from-pink-500 to-rose-500'
+    color: 'from-pink-500 to-rose-500',
+    href: '/recommendations'
   }
 ];
 
@@ -94,11 +101,27 @@ const testimonials = [
 
 export default function LandingPage() {
   const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     // Initialize database when component mounts
     initializeDatabase();
   }, []);
+
+  // Handle feature card click with authentication
+  const handleFeatureClick = (href: string) => {
+    console.log('Feature card clicked:', href, 'User logged in:', !!user);
+    
+    if (user) {
+      // User is logged in, go directly to feature page
+      console.log('Navigating to:', href);
+      router.push(href);
+    } else {
+      // User is not logged in, redirect to login page
+      console.log('User not logged in, redirecting to login');
+      router.push('/auth/login');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -221,17 +244,38 @@ export default function LandingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                 >
-                  <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
+                  <Card 
+                    className="h-full hover:shadow-xl transition-all duration-300 border-0 shadow-lg cursor-pointer hover:scale-[1.02] group active:scale-[0.98]"
+                    onClick={() => handleFeatureClick(feature.href)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleFeatureClick(feature.href);
+                      }
+                    }}
+                  >
                     <CardHeader>
-                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4`}>
+                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                         <Icon className="h-6 w-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl">{feature.title}</CardTitle>
+                      <CardTitle className="text-xl group-hover:text-blue-600 transition-colors duration-300">
+                        {feature.title}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CardDescription className="text-gray-600">
+                      <CardDescription className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
                         {feature.description}
                       </CardDescription>
+                      
+                      {/* Add click indicator */}
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors duration-300">
+                          {user ? 'Click to explore' : 'Login to access'}
+                        </span>
+                        <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-300" />
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
