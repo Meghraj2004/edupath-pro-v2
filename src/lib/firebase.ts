@@ -5,13 +5,13 @@ import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCfX_rQM_PoVKqztOXbNDTeYtZiquhIwv4",
-  authDomain: "carrivo-cc965.firebaseapp.com",
-  projectId: "carrivo-cc965",
-  storageBucket: "carrivo-cc965.firebasestorage.app",
-  messagingSenderId: "132111362909",
-  appId: "1:132111362909:web:7ac4a31d2a2a76864556b4",
-  measurementId: "G-3CNEQVJM6C"
+  apiKey: "AIzaSyB5rOnr90VlQ_qsX7NlcGVBqG1vwf8OKvo",
+  authDomain: "career-education.firebaseapp.com",
+  projectId: "career-education",
+  storageBucket: "career-education.firebasestorage.app",
+  messagingSenderId: "500848380035",
+  appId: "1:500848380035:web:9f38bf43826e308b0af3b6",
+  measurementId: "G-B43L116GV2"
 };
 
 // Initialize Firebase
